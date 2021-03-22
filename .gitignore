@@ -1,4 +1,4 @@
-*.pyc
 venv/
-logs.txt
 .idea/
+*.pyc
+*logs*.txt
