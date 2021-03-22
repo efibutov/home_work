@@ -15,6 +15,8 @@ LATERAL_COLLECTIVES = dict()
 
 
 def download_animal_image(uri, animal_name):
+    print(animal_name)
+    return
     r = requests.get(uri)
 
     try:
@@ -28,9 +30,6 @@ def download_animal_image(uri, animal_name):
             image_file.write(requests.get(image_uri).content)
     except Exception as e:
         print(uri, e)
-
-    # with open(os.path.join(settings.IMAGES_DIR, animal_name), 'wb') as image_file:
-    #     image_file.write(requests.get(uri).content)
 
 
 def update_collection(animal_name, lateral_collectives):
@@ -57,7 +56,7 @@ def scrap_page(content):
     else:
         table = tree.find_all(settings.TABLE_XPATH)[settings.RELEVANT_TABLE]
 
-        for row in table.find_all('tr')[:5]:
+        for row in table.find_all('tr'):
             cells = row.find_all('td')
             # Skip a row with too few cells - it's a kind of splitter
             if len(cells) < settings.LATERAL_COLLECTIVES_COL:

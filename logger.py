@@ -4,6 +4,7 @@ Logger facility module
 
 import logging
 import settings
+import os
 
 
 class AppLogger:
@@ -17,13 +18,17 @@ class AppLogger:
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         fh.setFormatter(formatter)
         self.__logger.addHandler(fh)
+        self.__logger.addHandler(logging.StreamHandler())
 
     @staticmethod
     def __verify_log_file(path_to_file):
         try:
             open(path_to_file, 'w')
         except PermissionError:
-            logging.exception(f'No permission for file {path_to_file}')
+            logging.exception(f'Wrong permission for file {path_to_file}')
+        except FileNotFoundError as e:
+            logging.exception(f'Wrong permission for file {path_to_file}')
+
 
     @staticmethod
     def debug(msg):
