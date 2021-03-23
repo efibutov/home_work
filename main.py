@@ -83,7 +83,6 @@ def scrap_page(content: bytes) -> None:
         analyze_table(tree)
 
 
-# todo: remove caching shit
 def load_root_page(uri: str) -> bytes:
     """
     Load the HTML page either from cache or from Internet
