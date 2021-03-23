@@ -1,36 +1,48 @@
 """
-Basic scrapper
+Animal table (Wikipedia) scrapper
 """
-import bs4
-from multiprocessing import Pool, cpu_count
-import os
-import requests
-import settings
-from logger import AppLogger
-import json
-# todo: ARGPARSE - use cached file or read from the Internet
 # todo: Logger
+# todo: download proper image
+# todo: ARGPARSE - use cached file or read from the Internet
 # todo: Unittests (mocks)
 # todo: HTML output
 # todo: documentation
+# todo: verify image
+
+import bs4
+import json
+import multiprocessing as mp
+import os
+import random
+import requests
+import settings
+import time
+from logger import AppLogger
+
 
 MODULE_LOGGER = AppLogger(__name__)
 LATERAL_COLLECTIVES = dict()
+
+if not os.path.exists(settings.IMAGES_DIR):
+    os.mkdir(settings.IMAGES_DIR)
 
 
 def create_html_output(lateral_collectives: dict) -> None:
     """
     Actual HTML page with all the relevant data
     """
+
     pass
 
 
-def download_animal_image(uri: str, animal_name) -> None:
+def download_animal_image(uri: str, animal_name: str) -> None:
     """
     Download the animal's image
     """
+    # Trying to look as a random request to the Wikipedia
+    time.sleep(random.random())
+
     try:
-        # print(animal_name)
         tree = bs4.BeautifulSoup(requests.get(uri).content, 'html.parser')
         script_text = tree.select('script[type="application/ld+json"]')[0]
         script_dict = json.loads(script_text.find_all(text=True)[0])
@@ -62,8 +74,8 @@ def analyze_table(tree: bs4.BeautifulSoup) -> None:
     """
     Analyzing tree and extract table with animals' data
     """
-    # The simplest way to run in multithreading - use all the available cores
-    pool = Pool(cpu_count())
+    # Number of processes to use in the pool - as a cores' number
+    pool = mp.Pool(mp.cpu_count())
     table = tree.find_all(settings.TABLE_XPATH)[settings.RELEVANT_TABLE]
 
     for row in table.find_all('tr'):
@@ -127,6 +139,4 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    # s = str(bs4.element.NavigableString('Vicuña'))
-    # print(s)
     main()
