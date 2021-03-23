@@ -4,7 +4,6 @@ Logger facility module
 
 import logging
 import settings
-import os
 
 
 class AppLogger:
@@ -28,7 +27,6 @@ class AppLogger:
             logging.exception(f'Wrong permission for file {path_to_file}')
         except FileNotFoundError as e:
             logging.exception(f'Wrong permission for file {path_to_file}')
-
 
     @staticmethod
     def debug(msg):
