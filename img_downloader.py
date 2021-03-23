@@ -1,3 +1,7 @@
+"""
+Image download utils
+"""
+
 import bs4
 import io
 import json
@@ -60,7 +64,7 @@ def retrieve_image(image_uri: str, file_name: str) -> None:
         validate_image_and_save_to_file(content, file_name, image_uri)
 
 
-def retrieve_animal_image(uri: str, animal_name: str) -> None:
+def retrieve_animal_image(uri: str, animal_name: str) -> str:
     """
     Download the animal's image
 
@@ -83,3 +87,4 @@ def retrieve_animal_image(uri: str, animal_name: str) -> None:
             f'{utils.get_proper_file_name_part(animal_name)}.{utils.get_proper_file_name_part(file_extension)}'
         )
         retrieve_image(image_uri, full_file_name)
+        return full_file_name

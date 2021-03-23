@@ -2,3 +2,4 @@ venv/
 .idea/
 *.pyc
 *logs*.txt
+output.html

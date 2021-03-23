@@ -6,8 +6,10 @@ Animal table (Wikipedia) scrapper
 # todo: documentation
 # todo: README
 # todo: Logger rotating files
+# todo: sorted keys
 
 import bs4
+import functools
 import logger
 import multiprocessing as mp
 import settings
@@ -22,19 +24,48 @@ def create_html_output(lateral_collectives: dict) -> None:
     """
     Actual HTML page with all the relevant data
     """
-    pass
+    html_output = list()
+    families = sorted(lateral_collectives)
+
+    for family, in families:
+        animals = None
+        row = list()
+        row.append('<tr>')
+        row.append(f'<td>{family}</td>')
+        row.append('<td>')
+        row.append(
+            ',<br/>'.join([animal['animal_name'] for animal in animals])
+        )
+        row.append('</td>')
+        row.append('</tr>')
+
+        html_output.append('\n'.join(row))
+
+    with open(settings.OUTPUT_HTML_FILE_TEMPLATE, 'r') as template_file:
+        template = template_file.read()
+
+        with open(settings.OUTPUT_HTML_FILE, 'w') as html_output_file:
+            html_output_file.write(
+                template.format(
+                    data='\n'.join(html_output)
+                )
+            )
 
 
-def update_collection(animal_name: str, lateral_collectives: list) -> None:
+def update_collection(animal_name: str, lateral_collectives: list, img_file_name: str) -> None:
     """
     Updates LATERAL_COLLECTIVES dict.
     If the key were not among the dict keys, set a list with an animal name as value (initiate a list)
     """
-    for key in lateral_collectives:
-        if key in LATERAL_COLLECTIVES:
-            LATERAL_COLLECTIVES[key].append(animal_name)
+    for collective in lateral_collectives:
+        if collective in LATERAL_COLLECTIVES:
+            LATERAL_COLLECTIVES[collective].append(
+                {'animal_name': animal_name, 'image_file_name': img_file_name}
+            )
         else:
-            LATERAL_COLLECTIVES[key] = [animal_name]
+            LATERAL_COLLECTIVES[collective] = [
+                {'animal_name': animal_name, 'image_file_name': img_file_name}
+            ]
 
 
 def analyze_table(tree: bs4.BeautifulSoup) -> None:
@@ -44,26 +75,25 @@ def analyze_table(tree: bs4.BeautifulSoup) -> None:
     # Number of processes to use in the pool - as a cores' number
     pool = mp.Pool(mp.cpu_count())
     table = tree.find_all(settings.TABLE_XPATH)[settings.RELEVANT_TABLE]
-
+    # Scan table rows for relevant data
     for row in table.find_all('tr'):
         cells = row.find_all('td')
         # Skip a row with too few cells - it's a kind of splitter
         if len(cells) < settings.LATERAL_COLLECTIVES_COL:
             continue
 
+        lateral_collectives = [
+            str(cell).strip() for cell in cells[settings.LATERAL_COLLECTIVES_COL]
+            if type(cell) is bs4.element.NavigableString
+        ]
         animal_name_cell = cells[settings.ANIMAL_NAME_COL]
         animal_name = animal_name_cell.find(text=True)
         animal_page = animal_name_cell.find_all('a', href=True)[0]
         pool.apply_async(
             func=img_dwnldr.retrieve_animal_image,
-            args=(f'{settings.BASE_URL}{animal_page["href"]}', str(animal_name),)
+            args=(f'{settings.BASE_URL}{animal_page["href"]}', str(animal_name),),
+            callback=functools.partial(update_collection, animal_name, lateral_collectives)
         )
-
-        lateral_collectives = [
-            str(cell).strip() for cell in cells[settings.LATERAL_COLLECTIVES_COL]
-            if type(cell) is bs4.element.NavigableString
-        ]
-        update_collection(animal_name, lateral_collectives)
 
     pool.close()
     pool.join()
@@ -102,10 +132,9 @@ def main() -> None:
     to assume that the page did not change
     """
     MODULE_LOGGER.info('Start script')
-    scrap_page(
-        load_root_page(settings.ANIMAL_TABLE_URL)
-    )
+    scrap_page(load_root_page(settings.ANIMAL_TABLE_URL))
     MODULE_LOGGER.info(f'Done. Check your {settings.IMAGES_DIR} directory for the images')
+    create_html_output(LATERAL_COLLECTIVES)
 
 
 if __name__ == '__main__':
