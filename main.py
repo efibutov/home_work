@@ -11,7 +11,7 @@ import bs4
 import logger
 import multiprocessing as mp
 import settings
-import image_downloader.img_downloader as img_dwnldr
+import img_downloader as img_dwnldr
 import utils
 
 MODULE_LOGGER = logger.AppLogger(__name__)
