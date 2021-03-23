@@ -7,6 +7,7 @@ Animal table (Wikipedia) scrapper
 # todo: README
 # todo: Logger rotating files
 # todo: sorted keys
+# todo: add ln -s to /tmp
 
 import bs4
 import functools
@@ -25,16 +26,22 @@ def create_html_output(lateral_collectives: dict) -> None:
     Actual HTML page with all the relevant data
     """
     html_output = list()
-    families = sorted(lateral_collectives)
 
-    for family, in families:
-        animals = None
+    for family in sorted(lateral_collectives):
+        print(family, lateral_collectives[family])
         row = list()
         row.append('<tr>')
-        row.append(f'<td>{family}</td>')
-        row.append('<td>')
+        row.append(f'<td style="text-align:center">{family}</td>')
+        row.append('<td style="text-align:center">')
+        import os
+        image_src = os.path.isfile()
         row.append(
-            ',<br/>'.join([animal['animal_name'] for animal in animals])
+            ',<br/>'.join(
+                (
+                    f'<img src=".{lateral_collectives[family][animal_name]}"><br />{animal_name}'
+                    for animal_name in sorted(lateral_collectives[family])
+                )
+            )
         )
         row.append('</td>')
         row.append('</tr>')
@@ -58,14 +65,10 @@ def update_collection(animal_name: str, lateral_collectives: list, img_file_name
     If the key were not among the dict keys, set a list with an animal name as value (initiate a list)
     """
     for collective in lateral_collectives:
-        if collective in LATERAL_COLLECTIVES:
-            LATERAL_COLLECTIVES[collective].append(
-                {'animal_name': animal_name, 'image_file_name': img_file_name}
-            )
+        if not collective in LATERAL_COLLECTIVES:
+            LATERAL_COLLECTIVES[collective] = {animal_name: img_file_name}
         else:
-            LATERAL_COLLECTIVES[collective] = [
-                {'animal_name': animal_name, 'image_file_name': img_file_name}
-            ]
+            LATERAL_COLLECTIVES[collective][animal_name] = img_file_name
 
 
 def analyze_table(tree: bs4.BeautifulSoup) -> None:
@@ -76,7 +79,7 @@ def analyze_table(tree: bs4.BeautifulSoup) -> None:
     pool = mp.Pool(mp.cpu_count())
     table = tree.find_all(settings.TABLE_XPATH)[settings.RELEVANT_TABLE]
     # Scan table rows for relevant data
-    for row in table.find_all('tr'):
+    for row in table.find_all('tr')[:10]:
         cells = row.find_all('td')
         # Skip a row with too few cells - it's a kind of splitter
         if len(cells) < settings.LATERAL_COLLECTIVES_COL:
@@ -138,4 +141,5 @@ def main() -> None:
 
 
 if __name__ == '__main__':
+    # import os
     main()
