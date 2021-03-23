@@ -1,29 +1,30 @@
 """
 Animal table (Wikipedia) scrapper
 """
-# todo: Logger
 # todo: download proper image
 # todo: ARGPARSE - use cached file or read from the Internet
 # todo: Unittests (mocks)
 # todo: HTML output
 # todo: documentation
+# todo: README
 # todo: verify image
+# todo: file already exists exception
 
 import bs4
+import io
 import json
+import logger
 import multiprocessing as mp
 import os
-import random
 import requests
 import settings
-import time
-from logger import AppLogger
+from PIL import Image, UnidentifiedImageError
 
 
-MODULE_LOGGER = AppLogger(__name__)
+MODULE_LOGGER = logger.AppLogger(__name__)
 LATERAL_COLLECTIVES = dict()
 
-if not os.path.exists(settings.IMAGES_DIR):
+if settings.USE_CACHE and not os.path.exists(settings.IMAGES_DIR):
     os.mkdir(settings.IMAGES_DIR)
 
 
@@ -31,31 +32,56 @@ def create_html_output(lateral_collectives: dict) -> None:
     """
     Actual HTML page with all the relevant data
     """
-
     pass
 
 
-def download_animal_image(uri: str, animal_name: str) -> None:
+def save_data_in_file(content: bytes, file_name: str) -> None:
+    """
+    Save the file on provided path
+    """
+    try:
+        with open(file_name, 'wb') as image_file:
+            image_file.write(content)
+    except PermissionError as e:
+        MODULE_LOGGER.exception(f'Failed to save the image due to permission error: {e}')
+    except FileExistsError as e:
+        MODULE_LOGGER.exception(f'File already exists: {e}')
+    except OSError as e:
+        MODULE_LOGGER.critical(f'Could not save the image (no space on disk? the disk is unavailable?): {e}')
+
+
+def retrieve_image(image_uri: str, file_name: str) -> None:
+    """
+    Download an image and verify it is a proper image content,
+    provided by its uri and save under provided file_name
+    """
+    try:
+        response = requests.get(image_uri)
+        if not response.ok:
+            MODULE_LOGGER.warning(f'Server returned error: {response.status_code}, ({image_uri})')
+            return
+
+        image = Image.open(io.BytesIO(response.content))
+
+        if image.size != (0, 0):
+            save_data_in_file(response.content, file_name)
+        else:
+            MODULE_LOGGER.warning(f'Bad image dimensions: {image.size}, ({image_uri})')
+    except UnidentifiedImageError:
+        MODULE_LOGGER.debug(f'Can not identify an image ({image_uri}) in the data')
+
+
+def retrieve_animal_image(uri: str, animal_name: str) -> None:
     """
     Download the animal's image
     """
-    # Trying to look as a random request to the Wikipedia
-    time.sleep(random.random())
-
-    try:
-        tree = bs4.BeautifulSoup(requests.get(uri).content, 'html.parser')
-        script_text = tree.select('script[type="application/ld+json"]')[0]
-        script_dict = json.loads(script_text.find_all(text=True)[0])
-        image_uri = script_dict['image']
-        file_extension = image_uri.split('/')[-1].split('.')[-1]
-        full_file_name = os.path.join(settings.IMAGES_DIR, f'{animal_name}.{file_extension}')
-
-        with open(full_file_name, 'wb') as image_file:
-            image_file.write(requests.get(image_uri).content)
-    except PermissionError as e:
-        MODULE_LOGGER.exception(f'Failed to save an image due to permission error: {e}')
-    except FileExistsError as e:
-        MODULE_LOGGER.exception(f'Failed does not exist: {e}')
+    tree = bs4.BeautifulSoup(requests.get(uri).content, 'html.parser')
+    script_text = tree.select('script[type="application/ld+json"]')[0]
+    script_dict = json.loads(script_text.find_all(text=True)[0])
+    image_uri = script_dict['image']
+    file_extension = image_uri.split('/')[-1].split('.')[-1]
+    full_file_name = os.path.join(settings.IMAGES_DIR, f'{animal_name}.{file_extension}')
+    retrieve_image(image_uri, full_file_name)
 
 
 def update_collection(animal_name: str, lateral_collectives: list) -> None:
@@ -88,7 +114,7 @@ def analyze_table(tree: bs4.BeautifulSoup) -> None:
         animal_name = animal_name_cell.find(text=True)
         animal_page = animal_name_cell.find_all('a', href=True)[0]
         pool.apply_async(
-            func=download_animal_image,
+            func=retrieve_animal_image,
             args=(f'{settings.BASE_URL}{animal_page["href"]}', str(animal_name),)
         )
 
@@ -102,7 +128,7 @@ def analyze_table(tree: bs4.BeautifulSoup) -> None:
     pool.join()
 
 
-def scrap_page(content: str) -> None:
+def scrap_page(content: bytes) -> None:
     """Actual parsing of the WIKI page's content"""
     MODULE_LOGGER.debug('SEARCHING THE TREE')
 
@@ -114,7 +140,10 @@ def scrap_page(content: str) -> None:
         analyze_table(tree)
 
 
-def load_page_data():
+def load_page() -> bytes:
+    """
+    Load the HTML page either from cache or from Internet
+    """
     if settings.USE_CACHE and os.path.isfile(settings.CACHE_FILE) and os.path.getsize(settings.CACHE_FILE):
         with open(settings.CACHE_FILE, 'rb') as cache_file:
             html = cache_file.read()
@@ -135,8 +164,22 @@ def main() -> None:
     to assume that the page did not change
     """
     MODULE_LOGGER.info('Execution has begin')
-    scrap_page(load_page_data())
+    scrap_page(load_page())
+
+
+def test():
+    img_uri = 'https://www.ynet.co.il'
+    img_uri = 'https://iv1.lisimg.com/image/2960142/539full-rain-phoenix.jpg'
+    response = requests.get(img_uri)
+
+    try:
+        image = Image.open(io.BytesIO(response.content))
+        # print(dir(image))
+        print(image.size)
+    except UnidentifiedImageError as e:
+        MODULE_LOGGER.debug(f'CAnnot identify an image ({img_uri})')
 
 
 if __name__ == '__main__':
-    main()
+    test()
+    # main()
