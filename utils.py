@@ -2,6 +2,8 @@
 Useful functions for the project
 """
 
+from multiprocessing import Pool, cpu_count
+import contextlib
 import re
 import requests
 import settings
@@ -31,3 +33,18 @@ def get_proper_file_name_part(original_filename: str) -> str:
     and return resulting string
     """
     return re.sub(r'[\\/*?:"<>|]', settings.PATHNAME_STUB_SYMBOL, original_filename)
+
+
+@contextlib.contextmanager
+def get_mp_pool(num_of_workers=cpu_count()):
+    pool = None
+
+    try:
+        pool = Pool(num_of_workers)
+        yield pool
+    except Exception as e:
+        MODULE_LOGGER.exception(f'Failed to create an MP pool: {e}')
+    finally:
+        if pool:
+            pool.close()
+            pool.join()

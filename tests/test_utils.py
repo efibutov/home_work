@@ -12,7 +12,7 @@ import utils
         ('/hello/world', '_hello_world',),
         ('*hello^world', '_hello^world'),
         ('*hello\\world', '_hello_world'),
-        ('<hello/world', '_hello_world'),
+        ('<hello?world>', '_hello_world_'),
     ]
 )
 def test_get_proper_file_name_part(test_value, expected):

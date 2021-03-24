@@ -62,33 +62,28 @@ def update_collection(animal_name: str, lateral_collectives: list, img_file_name
 def analyze_table(tree: bs4.BeautifulSoup) -> None:
     """Analyzing tree and extract table with animals' data"""
     # Number of processes to use in the pool - as a cores' number
-    pool = mp.Pool(mp.cpu_count())
     table = tree.find_all(settings.TABLE_XPATH)[settings.RELEVANT_TABLE]
 
-    # Scan table rows for relevant data
-    for row in table.find_all('tr'):
-        cells = row.find_all('td')
-
-        # Skip a row with too few cells - it's a kind of splitter
-        if len(cells) < settings.LATERAL_COLLECTIVES_COL:
-            continue
-
-        # Add strings only, skip tags
-        lateral_collectives = [
-            str(cell).strip() for cell in cells[settings.LATERAL_COLLECTIVES_COL]
-            if type(cell) is bs4.element.NavigableString
-        ]
-        animal_name_cell = cells[settings.ANIMAL_NAME_COL]
-        animal_name = animal_name_cell.find(text=True)
-        animal_page = animal_name_cell.find_all('a', href=True)[0]
-        pool.apply_async(
-            func=img_dwnldr.retrieve_animal_image,
-            args=(f'{settings.BASE_URL}{animal_page["href"]}', str(animal_name),),
-            callback=functools.partial(update_collection, animal_name, lateral_collectives)
-        )
-
-    pool.close()
-    pool.join()
+    with utils.get_mp_pool() as pool:
+        # Scan table rows for relevant data
+        for row in table.find_all('tr'):
+            cells = row.find_all('td')
+            # Skip a row with too few cells - it's a kind of splitter
+            if len(cells) < settings.LATERAL_COLLECTIVES_COL:
+                continue
+            # Add strings only, skip tags
+            lateral_collectives = [
+                str(cell).strip() for cell in cells[settings.LATERAL_COLLECTIVES_COL]
+                if type(cell) is bs4.element.NavigableString
+            ]
+            animal_name_cell = cells[settings.ANIMAL_NAME_COL]
+            animal_name = animal_name_cell.find(text=True)
+            animal_page = animal_name_cell.find_all('a', href=True)[0]
+            pool.apply_async(
+                func=img_dwnldr.retrieve_animal_image,
+                args=(f'{settings.BASE_URL}{animal_page["href"]}', str(animal_name),),
+                callback=functools.partial(update_collection, animal_name, lateral_collectives)
+            )
 
 
 def scrap_page(content: bytes) -> None:
