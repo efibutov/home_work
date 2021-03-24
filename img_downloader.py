@@ -11,7 +11,7 @@ import settings
 import utils
 from PIL import Image, UnidentifiedImageError
 
-MODULE_LOGGER = logger.AppLogger(__name__)
+MODULE_LOGGER = logger.Logger(__name__)
 
 
 def save_data_in_file(content: bytes, file_name: str) -> None:

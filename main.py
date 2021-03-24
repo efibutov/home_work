@@ -2,8 +2,7 @@
 Animal table (Wikipedia) scrapper
 """
 # todo: Unittests (mocks)
-# todo: documentation
-# todo: README
+# todo: documentation; README
 import bs4
 import functools
 import logger
