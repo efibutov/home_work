@@ -27,8 +27,5 @@ def test_rq(monkeypatch):
             self.ok = ok
             self.content = content
 
-        def get(self, uri):
-            return self.ok
-
     monkeypatch.setattr(requests, 'get', lambda x: RequestsGet())
-    assert utils.retrieve_content('whatever_string') == b''
+    assert utils.retrieve_content('whatever_uri') == b''

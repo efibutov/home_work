@@ -14,25 +14,25 @@ import img_downloader as img_dwnldr
 import utils
 
 MODULE_LOGGER = logger.Logger(__name__)
-LATERAL_COLLECTIVES = dict()
+COLLATERAL_ADJECTIVE = dict()
 
 
-def create_html_output(lateral_collectives: dict) -> None:
+def create_html_output(collateral_adjective: dict) -> None:
     """Actual HTML page with all the relevant data"""
     html_output = list()
 
-    for family in sorted(lateral_collectives):
+    for family in collateral_adjective:
         row = list()
         row.append(f'<tr><td style="text-align:center">{family}</td><td style="text-align:center">')
         animals_field = list()
 
-        for animal_name in sorted(lateral_collectives[family]):
+        for animal_name in collateral_adjective[family]:
             animals_field.append(animal_name)
-            img_src = os.path.join(settings.IMAGES_DIR, lateral_collectives[family][animal_name])
+            img_src = os.path.join(settings.IMAGES_DIR, collateral_adjective[family][animal_name])
 
             if os.path.isfile(img_src):
                 animals_field.append(
-                    f'<img src=".{lateral_collectives[family][animal_name]}" width="{settings.IMAGE_HTML_WIDTH}">'
+                    f'<img src=".{collateral_adjective[family][animal_name]}" width="{settings.IMAGE_HTML_WIDTH}">'
                 )
 
         row.append('<br />'.join(animals_field))
@@ -46,16 +46,16 @@ def create_html_output(lateral_collectives: dict) -> None:
         html_output_file.write(template.format(data='\n'.join(html_output)))
 
 
-def update_collection(animal_name: str, lateral_collectives: list, img_file_name: str) -> None:
+def update_collection(animal_name: str, collateral_adjective: list, img_file_name: str) -> None:
     """
     Updates LATERAL_COLLECTIVES dict.
     If the key were not among the dict keys, set a list with an animal name as value (initiate a list)
     """
-    for collective in lateral_collectives:
-        if collective not in LATERAL_COLLECTIVES:
-            LATERAL_COLLECTIVES[collective] = {animal_name: img_file_name}
+    for collective in collateral_adjective:
+        if collective not in COLLATERAL_ADJECTIVE:
+            COLLATERAL_ADJECTIVE[collective] = {animal_name: img_file_name}
         else:
-            LATERAL_COLLECTIVES[collective][animal_name] = img_file_name
+            COLLATERAL_ADJECTIVE[collective][animal_name] = img_file_name
 
 
 def analyze_table(tree: bs4.BeautifulSoup) -> None:
@@ -71,7 +71,7 @@ def analyze_table(tree: bs4.BeautifulSoup) -> None:
             if len(cells) < settings.LATERAL_COLLECTIVES_COL:
                 continue
             # Add strings only, skip tags
-            lateral_collectives = [
+            collateral_adjective = [
                 str(cell).strip() for cell in cells[settings.LATERAL_COLLECTIVES_COL]
                 if type(cell) is bs4.element.NavigableString
             ]
@@ -81,7 +81,7 @@ def analyze_table(tree: bs4.BeautifulSoup) -> None:
             pool.apply_async(
                 func=img_dwnldr.retrieve_animal_image,
                 args=(f'{settings.BASE_URL}{animal_page["href"]}', str(animal_name),),
-                callback=functools.partial(update_collection, animal_name, lateral_collectives)
+                callback=functools.partial(update_collection, animal_name, collateral_adjective)
             )
 
 
@@ -135,7 +135,7 @@ def main() -> None:
     make_soft_link()
     scrap_page(load_root_page(settings.ANIMAL_TABLE_URL))
     MODULE_LOGGER.info(f'Done. Check your {settings.IMAGES_DIR} directory for the images')
-    create_html_output(LATERAL_COLLECTIVES)
+    create_html_output(COLLATERAL_ADJECTIVE)
 
 
 if __name__ == '__main__':
