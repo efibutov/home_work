@@ -2,12 +2,13 @@
 Useful functions for the project
 """
 
-from multiprocessing import Pool, cpu_count
 import contextlib
 import re
 import requests
 import settings
 from logger import Logger
+from multiprocessing.pool import ThreadPool
+from multiprocessing import cpu_count
 
 MODULE_LOGGER = Logger(__name__)
 
@@ -41,7 +42,7 @@ def get_mp_pool(num_of_workers=cpu_count()):
     pool = None
 
     try:
-        pool = Pool(num_of_workers)
+        pool = ThreadPool(num_of_workers)
         yield pool
     except Exception as e:
         MODULE_LOGGER.exception(f'Failed to create an MP pool: {e}')

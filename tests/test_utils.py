@@ -4,6 +4,7 @@ Unit tests
 
 import pytest
 import utils
+import requests
 
 
 @pytest.mark.parametrize(
@@ -18,3 +19,16 @@ import utils
 )
 def test_get_proper_file_name_part(test_value, expected):
     assert utils.get_proper_file_name_part(test_value) == expected
+
+
+def test_rq(monkeypatch):
+    class RequestsGet(object):
+        def __init__(self, ok=True, content=b''):
+            self.ok = ok
+            self.content = content
+
+        def get(self, uri):
+            return self.ok
+
+    monkeypatch.setattr(requests, 'get', lambda x: RequestsGet())
+    assert utils.retrieve_content('whatever_string') == b''
