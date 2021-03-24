@@ -2,17 +2,16 @@
 Animal table (Wikipedia) scrapper
 """
 # todo: Unittests (mocks)
-# todo: HTML output
 # todo: documentation
 # todo: README
 # todo: Logger rotating files
 # todo: sorted keys
 # todo: add ln -s to /tmp
-
 import bs4
 import functools
 import logger
 import multiprocessing as mp
+import os
 import settings
 import img_downloader as img_dwnldr
 import utils
@@ -28,35 +27,28 @@ def create_html_output(lateral_collectives: dict) -> None:
     html_output = list()
 
     for family in sorted(lateral_collectives):
-        print(family, lateral_collectives[family])
         row = list()
-        row.append('<tr>')
-        row.append(f'<td style="text-align:center">{family}</td>')
-        row.append('<td style="text-align:center">')
-        # import os
-        # image_src = os.path.isfile()
-        row.append(
-            ',<br/>'.join(
-                (
-                    f'<img src=".{lateral_collectives[family][animal_name]}"><br />{animal_name}'
-                    for animal_name in sorted(lateral_collectives[family])
-                )
-            )
-        )
-        row.append('</td>')
-        row.append('</tr>')
+        row.append(f'<tr><td style="text-align:center">{family}</td><td style="text-align:center">')
+        animals_field = list()
 
+        for animal_name in sorted(lateral_collectives[family]):
+            animals_field.append(animal_name)
+            img_src = os.path.join(settings.IMAGES_DIR, lateral_collectives[family][animal_name])
+
+            if os.path.isfile(img_src):
+                animals_field.append(
+                    f'<img src=".{lateral_collectives[family][animal_name]}" width="{settings.IMAGE_HTML_WIDTH}">'
+                )
+
+        row.append('<br />'.join(animals_field))
+        row.append('</td></tr>')
         html_output.append('\n'.join(row))
 
     with open(settings.OUTPUT_HTML_FILE_TEMPLATE, 'r') as template_file:
         template = template_file.read()
 
-        with open(settings.OUTPUT_HTML_FILE, 'w') as html_output_file:
-            html_output_file.write(
-                template.format(
-                    data='\n'.join(html_output)
-                )
-            )
+    with open(settings.OUTPUT_HTML_FILE, 'w') as html_output_file:
+        html_output_file.write(template.format(data='\n'.join(html_output)))
 
 
 def update_collection(animal_name: str, lateral_collectives: list, img_file_name: str) -> None:
@@ -79,7 +71,7 @@ def analyze_table(tree: bs4.BeautifulSoup) -> None:
     pool = mp.Pool(mp.cpu_count())
     table = tree.find_all(settings.TABLE_XPATH)[settings.RELEVANT_TABLE]
     # Scan table rows for relevant data
-    for row in table.find_all('tr')[:10]:
+    for row in table.find_all('tr'):
         cells = row.find_all('td')
         # Skip a row with too few cells - it's a kind of splitter
         if len(cells) < settings.LATERAL_COLLECTIVES_COL:
@@ -128,6 +120,22 @@ def load_root_page(uri: str) -> bytes:
         return content
 
 
+def make_soft_link() -> None:
+    """
+    Add soft link in the current directory to the provided image source dir
+    """
+    try:
+        os.symlink(
+            src=settings.IMAGES_DIR,
+            dst=settings.SOFT_LINK_NAME,
+            target_is_directory=True
+        )
+    except FileExistsError as e:
+        MODULE_LOGGER.debug(f'The soft link already exists: {e}')
+    else:
+        MODULE_LOGGER.debug(f'The soft link successfully created')
+
+
 def main() -> None:
     """
     Read cached file, if it's better.
@@ -135,11 +143,12 @@ def main() -> None:
     to assume that the page did not change
     """
     MODULE_LOGGER.info('Start script')
+    make_soft_link()
     scrap_page(load_root_page(settings.ANIMAL_TABLE_URL))
     MODULE_LOGGER.info(f'Done. Check your {settings.IMAGES_DIR} directory for the images')
     create_html_output(LATERAL_COLLECTIVES)
 
 
 if __name__ == '__main__':
-    # import os
+
     main()
