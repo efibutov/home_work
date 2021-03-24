@@ -11,9 +11,7 @@ MODULE_LOGGER = Logger(__name__)
 
 
 def retrieve_content(uri: str) -> bytes:
-    """
-    General method for retrieving content from a provided URI
-    """
+    """General method for retrieving content from a provided URI"""
     try:
         response = requests.get(uri)
     except requests.exceptions.RequestException as e:
@@ -29,6 +27,7 @@ def retrieve_content(uri: str) -> bytes:
 
 def get_proper_file_name_part(original_filename: str) -> str:
     """
-    Replace forbidden UNIX filenames characters with harmless PATHNAME_STUB_SYMBOL and return resulting string
+    Replace forbidden UNIX filenames characters with harmless PATHNAME_STUB_SYMBOL
+    and return resulting string
     """
     return re.sub(r'[\\/*?:"<>|]', settings.PATHNAME_STUB_SYMBOL, original_filename)

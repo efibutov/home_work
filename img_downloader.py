@@ -15,9 +15,7 @@ MODULE_LOGGER = logger.Logger(__name__)
 
 
 def save_data_in_file(content: bytes, file_name: str) -> None:
-    """
-    Save the file on provided path
-    """
+    """Save the file on provided path"""
     try:
         if os.path.isfile(file_name):
             MODULE_LOGGER.warning(f'The file {file_name} already exists')
@@ -28,7 +26,7 @@ def save_data_in_file(content: bytes, file_name: str) -> None:
         with open(file_name, 'wb') as image_file:
             image_file.write(content)
     except PermissionError as e:
-        MODULE_LOGGER.exception(f'Failed to save the image due to permission error: {e}')
+        MODULE_LOGGER.exception(f'Failed to save the image due to permissions error: {e}')
     except OSError as e:
         MODULE_LOGGER.critical(f'Could not save the image (no space on disk? the disk is unavailable?): {e}')
     except Exception as e:
@@ -36,9 +34,7 @@ def save_data_in_file(content: bytes, file_name: str) -> None:
 
 
 def validate_image_and_save_to_file(content, file_name, image_uri):
-    """
-    Validate content and, if it represents a proper image, save it on destination (settings)
-    """
+    """Validate content and, if it represents a proper image, save it on destination (settings)"""
     try:
         # Before storing to a disk, validate the data
         image = Image.open(io.BytesIO(content))
@@ -67,10 +63,6 @@ def retrieve_image(image_uri: str, file_name: str) -> None:
 def retrieve_animal_image(uri: str, animal_name: str) -> str:
     """
     Download the animal's image
-
-    :param uri:
-    :param animal_name:
-    :return:
     """
     content = utils.retrieve_content(uri)
 
