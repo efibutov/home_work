@@ -19,9 +19,7 @@ LATERAL_COLLECTIVES = dict()
 
 
 def create_html_output(lateral_collectives: dict) -> None:
-    """
-    Actual HTML page with all the relevant data
-    """
+    """Actual HTML page with all the relevant data"""
     html_output = list()
 
     for family in sorted(lateral_collectives):
@@ -62,19 +60,20 @@ def update_collection(animal_name: str, lateral_collectives: list, img_file_name
 
 
 def analyze_table(tree: bs4.BeautifulSoup) -> None:
-    """
-    Analyzing tree and extract table with animals' data
-    """
+    """Analyzing tree and extract table with animals' data"""
     # Number of processes to use in the pool - as a cores' number
     pool = mp.Pool(mp.cpu_count())
     table = tree.find_all(settings.TABLE_XPATH)[settings.RELEVANT_TABLE]
+
     # Scan table rows for relevant data
     for row in table.find_all('tr'):
         cells = row.find_all('td')
+
         # Skip a row with too few cells - it's a kind of splitter
         if len(cells) < settings.LATERAL_COLLECTIVES_COL:
             continue
 
+        # Add strings only, skip tags
         lateral_collectives = [
             str(cell).strip() for cell in cells[settings.LATERAL_COLLECTIVES_COL]
             if type(cell) is bs4.element.NavigableString
