@@ -5,8 +5,6 @@ Animal table (Wikipedia) scrapper
 # todo: documentation
 # todo: README
 # todo: Logger rotating files
-# todo: sorted keys
-# todo: add ln -s to /tmp
 import bs4
 import functools
 import logger

@@ -12,9 +12,7 @@ RELEVANT_TABLE = -1  # There are two tables on the page; we need the 2nd one
 IMAGES_DIR = '/tmp'
 SOFT_LINK_NAME = 'tmp'
 IMAGE_HTML_WIDTH = 400
-# When developing and debugging it could be easier to cache the HTML page on a local file
-USE_CACHE = True
 DEFAULT_LOG_LEVEL = logging.DEBUG
-STUB_SYMBOL = '_'
+PATHNAME_STUB_SYMBOL = '_'
 REWRITE_EXISTING_IMAGE_FILES = True
 WRONG_IMAGE_DIMENSIONS = (0, 0)

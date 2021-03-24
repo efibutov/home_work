@@ -25,6 +25,6 @@ def retrieve_content(uri: str) -> bytes:
 
 def get_proper_file_name_part(original_filename: str) -> str:
     """
-    Replace forbidden UNIX filenames characters with harmless STUB_SYMBOL and return resulting string
+    Replace forbidden UNIX filenames characters with harmless PATHNAME_STUB_SYMBOL and return resulting string
     """
-    return re.sub(r'[\\/*?:"<>|]', settings.STUB_SYMBOL, original_filename)
+    return re.sub(r'[\\/*?:"<>|]', settings.PATHNAME_STUB_SYMBOL, original_filename)
