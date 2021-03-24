@@ -33,8 +33,8 @@ def create_html_output(lateral_collectives: dict) -> None:
         row.append('<tr>')
         row.append(f'<td style="text-align:center">{family}</td>')
         row.append('<td style="text-align:center">')
-        import os
-        image_src = os.path.isfile()
+        # import os
+        # image_src = os.path.isfile()
         row.append(
             ',<br/>'.join(
                 (
