@@ -1,9 +1,9 @@
 import re
 import requests
 import settings
-from logger import AppLogger
+from logger import Logger
 
-MODULE_LOGGER = AppLogger(__name__)
+MODULE_LOGGER = Logger(__name__)
 
 
 def retrieve_content(uri: str) -> bytes:

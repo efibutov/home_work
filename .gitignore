@@ -1,6 +1,6 @@
 venv/
 .idea/
 *.pyc
-*logs*.txt
+*logs*.txt.*
 output.html
 tmp

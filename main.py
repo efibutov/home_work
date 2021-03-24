@@ -4,7 +4,6 @@ Animal table (Wikipedia) scrapper
 # todo: Unittests (mocks)
 # todo: documentation
 # todo: README
-# todo: Logger rotating files
 import bs4
 import functools
 import logger
@@ -14,7 +13,7 @@ import settings
 import img_downloader as img_dwnldr
 import utils
 
-MODULE_LOGGER = logger.AppLogger(__name__)
+MODULE_LOGGER = logger.Logger(__name__)
 LATERAL_COLLECTIVES = dict()
 
 
