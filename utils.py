@@ -1,3 +1,7 @@
+"""
+Useful functions for the project
+"""
+
 import re
 import requests
 import settings

@@ -1,5 +1,6 @@
 """
 Animal table (Wikipedia) scrapper
+Analyzes the root table, and creates an output in user-friendly format (html page with images)
 """
 # todo: Unittests (mocks)
 # todo: documentation
@@ -54,7 +55,7 @@ def update_collection(animal_name: str, lateral_collectives: list, img_file_name
     If the key were not among the dict keys, set a list with an animal name as value (initiate a list)
     """
     for collective in lateral_collectives:
-        if not collective in LATERAL_COLLECTIVES:
+        if collective not in LATERAL_COLLECTIVES:
             LATERAL_COLLECTIVES[collective] = {animal_name: img_file_name}
         else:
             LATERAL_COLLECTIVES[collective][animal_name] = img_file_name
@@ -135,9 +136,7 @@ def make_soft_link() -> None:
 
 def main() -> None:
     """
-    Read cached file, if it's better.
-    Save a cache, if you want to run it many times and it's ok
-    to assume that the page did not change
+    Entry point
     """
     MODULE_LOGGER.info('Start script')
     make_soft_link()
