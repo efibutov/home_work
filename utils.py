@@ -37,6 +37,7 @@ def get_proper_file_name_part(original_filename: str) -> str:
 
 @contextlib.contextmanager
 def get_mp_pool(num_of_workers=cpu_count()):
+    """Allows to use a MP pool of workers with a context manager"""
     pool = None
 
     try:
