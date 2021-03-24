@@ -8,7 +8,6 @@ Analyzes the root table, and creates an output in user-friendly format (html pag
 import bs4
 import functools
 import logger
-import multiprocessing as mp
 import os
 import settings
 import img_downloader as img_dwnldr
