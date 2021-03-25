@@ -1,10 +1,7 @@
 """
-Animal table (Wikipedia) scrapper
-Analyzes the root table, and creates an output in user-friendly format (html page with images)
+Animal table (Wikipedia) scrapper.
+Analyzes the root table, and creates an output in user-friendly format (html page with images).
 """
-# todo: Unittests (mocks)
-# todo: documentation
-# todo: typehints
 import bs4
 import functools
 import logger
@@ -86,9 +83,7 @@ def analyze_table(tree: bs4.BeautifulSoup) -> None:
 
 
 def scrap_page(content: bytes) -> None:
-    """
-    Actual parsing of the WIKI page's content
-    """
+    """Actual parsing of the WIKI page's content"""
     MODULE_LOGGER.debug('Scanning the HTML tree')
 
     try:
@@ -100,9 +95,7 @@ def scrap_page(content: bytes) -> None:
 
 
 def load_root_page(uri: str) -> bytes:
-    """
-    Load the HTML page either from cache or from Internet
-    """
+    """Load the HTML page either from cache or from Internet"""
     content = utils.retrieve_content(uri)
 
     if not content:
@@ -112,9 +105,7 @@ def load_root_page(uri: str) -> bytes:
 
 
 def make_soft_link() -> None:
-    """
-    Add soft link in the current directory to the provided image source dir
-    """
+    """Add soft link in the current directory to the provided image source dir"""
     try:
         os.symlink(
             src=settings.IMAGES_DIR,
@@ -128,9 +119,7 @@ def make_soft_link() -> None:
 
 
 def main() -> None:
-    """
-    Entry point
-    """
+    """Entry point"""
     MODULE_LOGGER.info('Start script')
     make_soft_link()
     scrap_page(load_root_page(settings.ANIMAL_TABLE_URL))
