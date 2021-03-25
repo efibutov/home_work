@@ -21,11 +21,21 @@ def test_get_proper_file_name_part(test_value, expected):
     assert utils.get_proper_file_name_part(test_value) == expected
 
 
-def test_rq(monkeypatch):
-    class RequestsGet(object):
+def test_retrieve_content_error(monkeypatch):
+    def raise_request_exception():
+        raise requests.exceptions.RequestException()
+
+    monkeypatch.setattr(requests, 'get', lambda x: raise_request_exception())
+    assert utils.retrieve_content('whatever_uri') == b''
+
+
+def test_retrieve_content_success(monkeypatch):
+    uri = 'http://www.google.com'
+
+    class MockResponse(object):
         def __init__(self, ok=True, content=b''):
             self.ok = ok
             self.content = content
 
-    monkeypatch.setattr(requests, 'get', lambda x: RequestsGet())
-    assert utils.retrieve_content('whatever_uri') == b''
+    monkeypatch.setattr(requests, 'get', lambda x: MockResponse(content=b'some_string'))
+    assert utils.retrieve_content(uri) == b'some_string'
